@@ -29,23 +29,13 @@ public class LoadBalance
     // divisible by the number of processors.
     public static int loadBalance(int procs, int[] tasks, int[] partitions)
     {
-        List<List<Integer>> foobar_partitions = partition(tasks, procs);
-        System.out.println(foobar_partitions.toString());
-        System.out.println(maxWorkloadIndex(foobar_partitions));
-        int avg = tasks.length / procs;
-        // count total work in each partition
-        int max = 0;
-        int i = 0;
-        for (int p = 0; p < procs; p++) {
-            int total = 0;
-            for (int cnt = 0; cnt < avg; cnt++)
-                total += tasks[i++];
-            partitions[p] = total;
-            if (total > max)
-                max = total;
+        List<List<Integer>> balanced_partitions = partition(tasks, procs);
+
+        for (int i = 0; i < balanced_partitions.size(); i++) {
+            partitions[i] = workload(balanced_partitions.get(i));
         }
 
-        return max;
+        return workload(balanced_partitions.get(maxWorkloadIndex(balanced_partitions)));
     }
     private static int workload(List<Integer> values) {
         int workload = 0;
