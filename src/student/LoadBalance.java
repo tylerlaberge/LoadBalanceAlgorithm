@@ -7,6 +7,9 @@ package student;
  */
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoadBalance
 {
     // Simple example routine that just sets evenly spaced partitions
@@ -26,8 +29,10 @@ public class LoadBalance
     // divisible by the number of processors.
     public static int loadBalance(int procs, int[] tasks, int[] partitions)
     {
+        List<List<Integer>> foobar_partitions = partition(tasks, procs);
+        System.out.println(foobar_partitions.toString());
+        System.out.println(maxWorkloadIndex(foobar_partitions));
         int avg = tasks.length / procs;
-
         // count total work in each partition
         int max = 0;
         int i = 0;
@@ -41,6 +46,41 @@ public class LoadBalance
         }
 
         return max;
+    }
+    private static int workload(List<Integer> values) {
+        int workload = 0;
+        for (int value : values) {
+            workload += value;
+        }
+        return workload;
+    }
+    private static int maxWorkloadIndex(List<List<Integer>> partitions) {
+        int workload = 0;
+        int workload_index = -1;
+
+        for(int i = 0; i < partitions.size(); i++) {
+            List<Integer> partition = partitions.get(i);
+            int curr_workload = workload(partition);
+            if (curr_workload > workload) {
+                workload = curr_workload;
+                workload_index = i;
+            }
+        }
+
+        return workload_index;
+    }
+    private static List<List<Integer>> partition(int[] input_list, int parts) {
+        int partition_size = (int)Math.ceil(input_list.length / (double)parts);
+        List<List<Integer>> partitions = new ArrayList<>();
+        for (int i = 0; i < parts; i++) {
+            List<Integer> curr_partition = new ArrayList<>();
+            for (int j = i*partition_size; j < i*partition_size + Math.min(partition_size, input_list.length - i*partition_size); j++) {
+                curr_partition.add(input_list[j]);
+            }
+            partitions.add(curr_partition);
+        }
+
+        return partitions;
     }
 }
 
