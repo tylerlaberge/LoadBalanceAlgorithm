@@ -34,9 +34,7 @@ public class LoadBalance
         while (bounded_partition == null) {
             bounded_partition = boundedPartition(tasks, processes, workload_bound++);
         }
-        for (int i = 0; i < partitions.length; i++) {
-            partitions[i] = bounded_partition[i];
-        }
+        System.arraycopy(bounded_partition, 0, partitions, 0, bounded_partition.length);
         return max(bounded_partition);
     }
 
