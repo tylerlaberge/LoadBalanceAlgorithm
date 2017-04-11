@@ -6,10 +6,6 @@ package student;
  *                 among the processors
  */
 
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class LoadBalance
 {
     // Simple example routine that just sets evenly spaced partitions
@@ -27,50 +23,62 @@ public class LoadBalance
     //
     // In this simple code some tasks will be lost if the number of tasks is not evenly
     // divisible by the number of processors.
-    public static int loadBalance(int procs, int[] tasks, int[] partitions)
+    public static int loadBalance(int processes, int[] tasks, int[] partitions)
     {
-        List<List<Integer>> balanced_partitions = partition(tasks, procs);
-
-        for (int i = 0; i < balanced_partitions.size(); i++) {
-            partitions[i] = workload(balanced_partitions.get(i));
+        int workload_bound = sum(tasks)/processes;
+        int[] bounded_partition = boundedPartition(tasks, processes, workload_bound);
+        while (bounded_partition != null) {
+            workload_bound = max(bounded_partition);
+            bounded_partition = boundedPartition(tasks, processes, workload_bound);
         }
-
-        return workload(balanced_partitions.get(maxWorkloadIndex(balanced_partitions)));
+        while (bounded_partition == null) {
+            bounded_partition = boundedPartition(tasks, processes, workload_bound++);
+        }
+        for (int i = 0; i < partitions.length; i++) {
+            partitions[i] = bounded_partition[i];
+        }
+        return max(bounded_partition);
     }
-    private static int workload(List<Integer> values) {
-        int workload = 0;
+
+    private static int[] boundedPartition(int[] jobs, int processes, int bound) {
+        int[] partitions = new int[processes];
+        int partitioned_elements = 0;
+        for (int i = 0; i < processes; i++){
+            for (int j = partitioned_elements; j < jobs.length; j++) {
+                int curr_job = jobs[j];
+                if (partitions[i] + curr_job < bound) {
+                    partitions[i] += curr_job;
+                    partitioned_elements += 1;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        if (partitioned_elements < jobs.length) {
+            return null;
+        }
+        else {
+            return partitions;
+        }
+    }
+
+    private static int sum(int[] values) {
+        int total = 0;
         for (int value : values) {
-            workload += value;
+            total += value;
         }
-        return workload;
+        return total;
     }
-    private static int maxWorkloadIndex(List<List<Integer>> partitions) {
-        int workload = 0;
-        int workload_index = -1;
 
-        for(int i = 0; i < partitions.size(); i++) {
-            List<Integer> partition = partitions.get(i);
-            int curr_workload = workload(partition);
-            if (curr_workload > workload) {
-                workload = curr_workload;
-                workload_index = i;
+    private static int max(int[] values) {
+        int curr_max = 0;
+        for (int value : values) {
+            if (value > curr_max) {
+                curr_max = value;
             }
         }
-
-        return workload_index;
+        return curr_max;
     }
-    private static List<List<Integer>> partition(int[] input_list, int parts) {
-        int partition_size = (int)Math.ceil(input_list.length / (double)parts);
-        List<List<Integer>> partitions = new ArrayList<>();
-        for (int i = 0; i < parts; i++) {
-            List<Integer> curr_partition = new ArrayList<>();
-            for (int j = i*partition_size; j < i*partition_size + Math.min(partition_size, input_list.length - i*partition_size); j++) {
-                curr_partition.add(input_list[j]);
-            }
-            partitions.add(curr_partition);
-        }
-
-        return partitions;
-    }
-}
+ }
 
